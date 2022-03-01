@@ -1,0 +1,20 @@
+{
+  "name": "@colorfy-software/logify",
+  "version": "1.0.0",
+  "description": "Used for logging",
+  "author": "colorfy-software",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colorfy-software/logify.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "bugs": {
+    "url": "https://github.com/colorfy-software/logify/issues"
+  },
+  "homepage": "https://github.com/colorfy-software/logify#readme"
+}
