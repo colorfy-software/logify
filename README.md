@@ -15,7 +15,7 @@
 ```typescript
 // core/logging-core.ts
 
-import Logify from '@colorfy-software/apify'
+import Logify from '@colorfy-software/logify'
 
 interface CustomErrorType {
   message: string
