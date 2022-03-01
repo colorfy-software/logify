@@ -54,7 +54,7 @@ function getDefaultColorForLoggingLevel(type: LoggingLevelType): string {
 }
 
 class Logify<ErrorTypes> {
-  props: LogifyPropsType<ErrorTypes>
+  private props: LogifyPropsType<ErrorTypes>
   // init constructor with LogifyPropsType
   constructor(props: LogifyPropsType<ErrorTypes>) {
     this.props = props
