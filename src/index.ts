@@ -6,7 +6,7 @@ interface LogifyPropsType<ErrorGenericType> {
   defaultParams?: () => Record<string, unknown> | Record<string, unknown>
   parseError?: (error: ErrorGenericType | ErrorParamType) => Record<string, unknown> | undefined
   shouldSendLogsIf?: () => boolean | boolean
-  shouldLogToConsole?: () => boolean | boolean
+  shouldLogToConsoleIf?: () => boolean | boolean
   printColors?: {
     debug?: string
     info?: string
@@ -53,7 +53,7 @@ function getDefaultColorForLoggingLevel(type: LoggingLevelType): string {
   }
 }
 
-class Logify<ErrorTypes> {
+class Logify<ErrorTypes = ErrorParamType> {
   private props: LogifyPropsType<ErrorTypes>
   // init constructor with LogifyPropsType
   constructor(props: LogifyPropsType<ErrorTypes>) {
@@ -218,12 +218,12 @@ class Logify<ErrorTypes> {
   }
 
   private _shouldLogToConsole = (): boolean => {
-    const hasLogic = isBoolean(this.props.shouldLogToConsole) || isFunction(this.props.shouldLogToConsole)
+    const hasLogic = isBoolean(this.props.shouldLogToConsoleIf) || isFunction(this.props.shouldLogToConsoleIf)
 
     if (hasLogic) {
-      return isBoolean(this.props.shouldLogToConsole)
-        ? (this.props.shouldLogToConsole as unknown as boolean)
-        : this.props.shouldLogToConsole!()
+      return isBoolean(this.props.shouldLogToConsoleIf)
+        ? (this.props.shouldLogToConsoleIf as unknown as boolean)
+        : this.props.shouldLogToConsoleIf!()
     }
 
     return true
