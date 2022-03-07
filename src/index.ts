@@ -3,7 +3,7 @@ type LoggingLevelType = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 interface LogifyPropsType<ErrorGenericType> {
   endpoint: string
-  defaultParams?: () => Record<string, unknown> | Record<string, unknown>
+  defaultParams?: (() => Record<string, unknown>) | Record<string, unknown>
   parseError?: (error: ErrorGenericType | ErrorParamType) => Record<string, unknown> | undefined
   shouldSendLogsIf?: () => boolean | boolean
   shouldLogToConsoleIf?: () => boolean | boolean
@@ -122,7 +122,8 @@ class Logify<ErrorTypes = ErrorParamType> {
       this.props.parseError?.(params?.error as ErrorTypes | ErrorParamType) ||
       (params?.error as ErrorTypes | ErrorParamType)
     const defaultParams = isFunction(this.props?.defaultParams)
-      ? this.props.defaultParams!()
+      ? // @ts-ignore
+        this.props.defaultParams!()
       : isObject(this.props.defaultParams)
       ? this.props.defaultParams
       : {}
