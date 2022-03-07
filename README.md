@@ -37,7 +37,7 @@ const logger = new Logify<CustomErrorType>({
   // Condition if logs should be sent to server. Can be a function. Defaults to true
   shouldSendLogsIf?: !__DEV__,
   // Condition if logs should be shown in console. Can be a function. Defaults to true
-  shouldLogToConsole?: true,
+  shouldLogToConsoleIf?: true,
   // Possibility to edit colors that are printed to console
   printColors?: {
     debug?: string,

@@ -5,8 +5,8 @@ interface LogifyPropsType<ErrorGenericType> {
   endpoint: string
   defaultParams?: (() => Record<string, unknown>) | Record<string, unknown>
   parseError?: (error: ErrorGenericType | ErrorParamType) => Record<string, unknown> | undefined
-  shouldSendLogsIf?: () => boolean | boolean
-  shouldLogToConsoleIf?: () => boolean | boolean
+  shouldSendLogsIf?: (() => boolean) | boolean
+  shouldLogToConsoleIf?: (() => boolean) | boolean
   printColors?: {
     debug?: string
     info?: string
@@ -188,7 +188,8 @@ class Logify<ErrorTypes = ErrorParamType> {
     if (hasLogicToSend) {
       const shouldSend = isBoolean(this.props.shouldSendLogsIf)
         ? this.props.shouldSendLogsIf
-        : this.props?.shouldSendLogsIf?.()
+        : // @ts-ignore
+          this.props?.shouldSendLogsIf?.()
 
       if (shouldSend) {
         try {
@@ -224,7 +225,8 @@ class Logify<ErrorTypes = ErrorParamType> {
     if (hasLogic) {
       return isBoolean(this.props.shouldLogToConsoleIf)
         ? (this.props.shouldLogToConsoleIf as unknown as boolean)
-        : this.props.shouldLogToConsoleIf!()
+        : // @ts-ignore
+          this.props.shouldLogToConsoleIf!()
     }
 
     return true
