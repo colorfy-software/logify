@@ -3,6 +3,7 @@ type LoggingLevelType = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
 interface LogifyPropsType<ErrorGenericType> {
   endpoint: string
+  storageKey?: string
   defaultParams?: (() => Record<string, unknown>) | Record<string, unknown>
   parseError?: (error: ErrorGenericType | ErrorParamType) => Record<string, unknown> | undefined
   shouldSendLogsIf?: (() => boolean) | boolean
@@ -15,9 +16,8 @@ interface LogifyPropsType<ErrorGenericType> {
     fatal?: string
   }
   storage?: {
-    key: string
-    get: (key: string) => string | null
-    set: (key: string, value: string) => any
+    getItem: (key: string) => string | null
+    setItem: (key: string, value: string) => any
   }
 }
 
@@ -61,7 +61,7 @@ function getDefaultColorForLoggingLevel(type: LoggingLevelType): string {
 class Logify<ErrorTypes = ErrorParamType> {
   private props: LogifyPropsType<ErrorTypes>
   // init constructor with LogifyPropsType
-  constructor(props: LogifyPropsType<ErrorTypes>) {
+  constructor(props: LogifyPropsType<ErrorTypes> = { endpoint: '', storageKey: 'logs' }) {
     this.props = props
   }
 
@@ -330,10 +330,10 @@ class Logify<ErrorTypes = ErrorParamType> {
       return
     }
 
-    const { key, get, set } = this.props.storage
+    const { storageKey, storage } = this.props
 
-    const current = JSON.parse(get(key)) || []
-    set(key, JSON.stringify([...current, log]))
+    const current = JSON.parse(storage.getItem(storageKey)) || []
+    storage.setItem(storageKey, JSON.stringify([...current, log]))
   }
 
   /**
@@ -344,9 +344,9 @@ class Logify<ErrorTypes = ErrorParamType> {
       return
     }
 
-    const { key, get, set } = this.props.storage
+    const { storageKey, storage } = this.props
 
-    const logs = JSON.parse(get(key)) || []
+    const logs = JSON.parse(storage.getItem(storageKey)) || []
 
     if (!logs.length) {
       return
@@ -359,7 +359,7 @@ class Logify<ErrorTypes = ErrorParamType> {
         'Content-Type': 'application/json; charset=utf-8',
       },
     })
-      .then(() => set(key, JSON.stringify([])))
+      .then(() => storage.setItem(storageKey, JSON.stringify([])))
       .catch(e => {
         this.debug('error sending stored logs', e)
       })
