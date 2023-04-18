@@ -14,6 +14,11 @@ interface LogifyPropsType<ErrorGenericType> {
     error?: string
     fatal?: string
   }
+  storage?: {
+    key: string
+    get: (key: string) => string | null
+    set: (key: string, value: string) => any
+  }
 }
 
 export function isString(value: unknown): boolean {
@@ -140,15 +145,13 @@ class Logify<ErrorTypes = ErrorParamType> {
       }
     }
 
-    return {
-      jsonLog: JSON.stringify({
-        level: uppercaseType,
-        msg: sanitizedMessage,
-        ...defaultParams,
-        ...(paramsToSend || {}),
-      }),
-      timestamp: new Date().getTime(),
-    }
+    return JSON.stringify({
+      ts: new Date(),
+      level: uppercaseType,
+      msg: sanitizedMessage,
+      ...defaultParams,
+      ...(paramsToSend || {}),
+    })
   }
 
   /**
@@ -192,30 +195,28 @@ class Logify<ErrorTypes = ErrorParamType> {
           this.props?.shouldSendLogsIf?.()
 
       if (shouldSend) {
-        try {
-          fetch(this.props.endpoint, {
-            method: 'POST',
-            body: log,
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-            },
-          })
-        } catch (e) {
-          this.debug('error sending log', e as Record<string, unknown>)
-        }
-      }
-    } else {
-      try {
         fetch(this.props.endpoint, {
           method: 'POST',
           body: log,
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
           },
+        }).catch(e => {
+          this.debug('error sending log', e as Record<string, unknown>)
+          this._store(log)
         })
-      } catch (e) {
-        this.debug('error sending log', e as Record<string, unknown>)
       }
+    } else {
+      fetch(this.props.endpoint, {
+        method: 'POST',
+        body: log,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }).catch(e => {
+        this.debug('error sending log', e as Record<string, unknown>)
+        this._store(log)
+      })
     }
   }
 
@@ -260,7 +261,7 @@ class Logify<ErrorTypes = ErrorParamType> {
       console.log(...logMessage)
     }
 
-    this._sendLogToGrafana(this._constructBackendLogEvent('info', message, params).jsonLog)
+    this._sendLogToGrafana(this._constructBackendLogEvent('info', message, params))
   }
 
   /**
@@ -281,7 +282,7 @@ class Logify<ErrorTypes = ErrorParamType> {
       console.log(...logMessage)
     }
 
-    this._sendLogToGrafana(this._constructBackendLogEvent('warn', message, params).jsonLog)
+    this._sendLogToGrafana(this._constructBackendLogEvent('warn', message, params))
   }
 
   /**
@@ -302,7 +303,7 @@ class Logify<ErrorTypes = ErrorParamType> {
       console.log(...logMessage)
     }
 
-    this._sendLogToGrafana(this._constructBackendLogEvent('error', message, params).jsonLog)
+    this._sendLogToGrafana(this._constructBackendLogEvent('error', message, params))
   }
 
   /**
@@ -323,7 +324,52 @@ class Logify<ErrorTypes = ErrorParamType> {
       console.log(...logMessage)
     }
 
-    this._sendLogToGrafana(this._constructBackendLogEvent('fatal', message, params).jsonLog)
+    this._sendLogToGrafana(this._constructBackendLogEvent('fatal', message, params))
+  }
+
+  /**
+   * Stores an event (due to auth token missing or no network connection) to be sent to Grafana later, using "logStored" function.
+   * @param log `string` - JSON.stringify-ed log object
+   * @private
+   */
+  private _store = (log: string) => {
+    if (!this.props.storage) {
+      return
+    }
+
+    const { key, get, set } = this.props.storage
+
+    const current = JSON.parse(get(key)) || []
+    set(key, JSON.stringify([...current, log]))
+  }
+
+  /**
+   * Sends out all stored logs to Grafana.
+   */
+  public logStored = (): void => {
+    if (!this.props.storage) {
+      return
+    }
+
+    const { key, get, set } = this.props.storage
+
+    const logs = JSON.parse(get(key)) || []
+
+    if (!logs.length) {
+      return
+    }
+
+    fetch(this.props.endpoint, {
+      method: 'POST',
+      body: logs,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    })
+      .then(() => set(key, JSON.stringify([])))
+      .catch(e => {
+        this.debug('error sending stored logs', e)
+      })
   }
 }
 
