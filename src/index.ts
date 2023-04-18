@@ -186,27 +186,20 @@ class Logify<ErrorTypes = ErrorParamType> {
    * @private
    */
   private _sendLogToGrafana = async (log: string) => {
-    const hasLogicToSend = isBoolean(this.props.shouldSendLogsIf) || isFunction(this.props.shouldSendLogsIf)
+    const shouldSend = (): boolean => {
+      const hasLogicToSend = isBoolean(this.props.shouldSendLogsIf) || isFunction(this.props.shouldSendLogsIf)
 
-    if (hasLogicToSend) {
-      const shouldSend = isBoolean(this.props.shouldSendLogsIf)
+      if (!hasLogicToSend) {
+        return true
+      }
+
+      return isBoolean(this.props.shouldSendLogsIf)
         ? this.props.shouldSendLogsIf
         : // @ts-ignore
-          this.props?.shouldSendLogsIf?.()
+        this.props?.shouldSendLogsIf?.()
+    }
 
-      if (shouldSend) {
-        fetch(this.props.endpoint, {
-          method: 'POST',
-          body: log,
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-          },
-        }).catch(e => {
-          this.debug('error sending log', e as Record<string, unknown>)
-          this._store(log)
-        })
-      }
-    } else {
+    if (shouldSend()) {
       fetch(this.props.endpoint, {
         method: 'POST',
         body: log,
