@@ -321,7 +321,7 @@ class Logify<ErrorTypes = ErrorParamType> {
   }
 
   /**
-   * Stores an event (due to auth token missing or no network connection) to be sent to Grafana later, using "logStored" function.
+   * Stores an event (due to auth token missing or no network connection) to be sent to Grafana later, using "sendStoredLogs" function.
    * @param log `string` - JSON.stringify-ed log object
    * @private
    */
@@ -339,7 +339,7 @@ class Logify<ErrorTypes = ErrorParamType> {
   /**
    * Sends out all stored logs to Grafana.
    */
-  public logStored = (): void => {
+  public sendStoredLogs = (): void => {
     if (!this.props.storage) {
       return
     }
