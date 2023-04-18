@@ -1,9 +1,10 @@
 type ErrorParamType = Error | undefined
 type LoggingLevelType = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 
+const DEFAULT_STORAGE_KEY = 'logs'
+
 interface LogifyPropsType<ErrorGenericType> {
   endpoint: string
-  storageKey?: string
   defaultParams?: (() => Record<string, unknown>) | Record<string, unknown>
   parseError?: (error: ErrorGenericType | ErrorParamType) => Record<string, unknown> | undefined
   shouldSendLogsIf?: (() => boolean) | boolean
@@ -16,6 +17,7 @@ interface LogifyPropsType<ErrorGenericType> {
     fatal?: string
   }
   storage?: {
+    key?: string
     getItem: (key: string) => string | null | Promise<string | null>
     setItem: (key: string, value: string) => any
   }
@@ -61,7 +63,7 @@ function getDefaultColorForLoggingLevel(type: LoggingLevelType): string {
 class Logify<ErrorTypes = ErrorParamType> {
   private props: LogifyPropsType<ErrorTypes>
   // init constructor with LogifyPropsType
-  constructor(props: LogifyPropsType<ErrorTypes> = { endpoint: '', storageKey: 'logs' }) {
+  constructor(props: LogifyPropsType<ErrorTypes>) {
     this.props = props
   }
 
@@ -330,12 +332,13 @@ class Logify<ErrorTypes = ErrorParamType> {
       return
     }
 
-    const { storageKey, storage } = this.props
+    const { key, getItem, setItem } = this.props.storage
+    const storageKey = key ?? DEFAULT_STORAGE_KEY
 
-    const data = await storage.getItem(storageKey)
+    const data = await getItem(storageKey)
 
     const current = JSON.parse(data) || []
-    await storage.setItem(storageKey, JSON.stringify([...current, log]))
+    await setItem(storageKey, JSON.stringify([...current, log]))
   }
 
   /**
@@ -346,9 +349,10 @@ class Logify<ErrorTypes = ErrorParamType> {
       return
     }
 
-    const { storageKey, storage } = this.props
+    const { key, getItem, setItem } = this.props.storage
+    const storageKey = key ?? DEFAULT_STORAGE_KEY
 
-    const data = await storage.getItem(storageKey)
+    const data = await getItem(storageKey)
 
     const logs = JSON.parse(data) || []
 
@@ -364,7 +368,7 @@ class Logify<ErrorTypes = ErrorParamType> {
       },
     })
       .then(async () => {
-        await storage.setItem(storageKey, JSON.stringify([]))
+        await setItem(storageKey, JSON.stringify([]))
       })
       .catch(e => {
         this.debug('error sending stored logs', e)
