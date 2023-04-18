@@ -27,8 +27,6 @@ export const logsStorage = new MMKV({ id: 'logs' })
 
 const logger = new Logify<CustomErrorType>({
   endpoint: 'http://some-endpoint.com',
-  // Storage key. Will fall back to "logs" by default
-  storageKey: 'logs-storage',
   // Can be an object or a function, get's added to each log
   defaultParams?: {
     userId: getUserId()
@@ -53,6 +51,7 @@ const logger = new Logify<CustomErrorType>({
   },
   // Storage configuration
   storage?: {
+    key?: string,
     getItem: (key: string): string | null => logsStorage.getString(key) ?? null,
     setItem: (key: string, value: string) => logsStorage.set(key, value),
   }
