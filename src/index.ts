@@ -16,7 +16,7 @@ interface LogifyPropsType<ErrorGenericType> {
     fatal?: string
   }
   storage?: {
-    getItem: (key: string) => string | null
+    getItem: (key: string) => string | null | Promise<string | null>
     setItem: (key: string, value: string) => any
   }
 }
@@ -325,28 +325,32 @@ class Logify<ErrorTypes = ErrorParamType> {
    * @param log `string` - JSON.stringify-ed log object
    * @private
    */
-  private _store = (log: string) => {
+  private _store = async (log: string) => {
     if (!this.props.storage) {
       return
     }
 
     const { storageKey, storage } = this.props
 
-    const current = JSON.parse(storage.getItem(storageKey)) || []
-    storage.setItem(storageKey, JSON.stringify([...current, log]))
+    const data = await storage.getItem(storageKey)
+
+    const current = JSON.parse(data) || []
+    await storage.setItem(storageKey, JSON.stringify([...current, log]))
   }
 
   /**
    * Sends out all stored logs to Grafana.
    */
-  public sendStoredLogs = (): void => {
+  public sendStoredLogs = async () => {
     if (!this.props.storage) {
       return
     }
 
     const { storageKey, storage } = this.props
 
-    const logs = JSON.parse(storage.getItem(storageKey)) || []
+    const data = await storage.getItem(storageKey)
+
+    const logs = JSON.parse(data) || []
 
     if (!logs.length) {
       return
@@ -359,7 +363,9 @@ class Logify<ErrorTypes = ErrorParamType> {
         'Content-Type': 'application/json; charset=utf-8',
       },
     })
-      .then(() => storage.setItem(storageKey, JSON.stringify([])))
+      .then(async () => {
+        await storage.setItem(storageKey, JSON.stringify([]))
+      })
       .catch(e => {
         this.debug('error sending stored logs', e)
       })
