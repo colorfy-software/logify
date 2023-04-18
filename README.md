@@ -15,12 +15,15 @@
 ```typescript
 // core/logging-core.ts
 
+import { MMKV } from 'react-native-mmkv'
 import Logify from '@colorfy-software/logify'
 
 interface CustomErrorType {
   message: string
   code: number
 }
+
+export const logsStorage = new MMKV({ id: 'logs' })
 
 const logger = new Logify<CustomErrorType>({
   endpoint: 'http://some-endpoint.com',
@@ -45,6 +48,12 @@ const logger = new Logify<CustomErrorType>({
     warn?: string,
     error?: string,
     fatal?: string,
+  },
+  // Storage configuration
+  storage?: {
+    key: 'logs',
+    get: (key: string): string | null => logsStorage.getString(key) ?? null,
+    set: (key: string, value: string) => logsStorage.set(key, value),
   }
 })
 
