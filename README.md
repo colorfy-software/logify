@@ -51,7 +51,7 @@ const logger = new Logify<CustomErrorType>({
   },
   // Storage configuration
   storage?: {
-    key?: string,
+    key: 'logs',
     getItem: (key: string): string | null => logsStorage.getString(key) ?? null,
     setItem: (key: string, value: string) => logsStorage.set(key, value),
   }
