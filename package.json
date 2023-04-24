@@ -1,12 +1,15 @@
 {
   "name": "@colorfy-software/logify",
-  "version": "1.0.7",
-  "description": "Used for logging",
+  "version": "1.1.0",
+  "description": " Simple wrapper for sending logs",
   "author": "colorfy-software",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/colorfy-software/logify.git"
+  },
+  "scripts": {
+    "release": "yarn version && tsc --build && yarn publish"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
