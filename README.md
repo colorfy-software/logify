@@ -28,29 +28,29 @@ export const logsStorage = new MMKV({ id: 'logs' })
 const logger = new Logify<CustomErrorType>({
   endpoint: 'http://some-endpoint.com',
   // Can be an object or a function, get's added to each log
-  defaultParams?: {
-    userId: getUserId()
+  defaultParams: {
+    userId: getUserId(),
     source: 'app'
   },
   // Error here has CustomErrorType | DefaultErrorType(from lib), can parse error to be something useful
-  parseError?: (error) => {
+  parseError: (error) => {
     // do stuff with error
     return parsedErrorMessage
   },
   // Condition if logs should be sent to server. Can be a function. Defaults to true
-  shouldSendLogsIf?: !__DEV__,
+  shouldSendLogsIf: !__DEV__,
   // Condition if logs should be shown in console. Can be a function. Defaults to true
-  shouldLogToConsoleIf?: true,
+  shouldLogToConsoleIf: true,
   // Possibility to edit colors that are printed to console
-  printColors?: {
-    debug?: string,
-    info?: string,
-    warn?: string,
-    error?: string,
-    fatal?: string,
+  printColors: {
+    debug: '#FFFFFF',
+    info: '#ADD8E6',
+    warn: '#FFA500',
+    error: '#FF0000',
+    fatal: '#FF0000',
   },
   // Storage configuration
-  storage?: {
+  storage: {
     key: 'logs',
     getItem: (key: string): string | null => logsStorage.getString(key) ?? null,
     setItem: (key: string, value: string) => logsStorage.set(key, value),
